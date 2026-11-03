@@ -74,10 +74,35 @@ jobs:
             cp sensor/target/x86_64-unknown-linux-musl/release/openxdr-sensor release-assets/openxdr-sensor-linux-amd64 || true
           fi
 
-      - name: "6. Package Source Code"
+      - name: "6. Prepare install.sh and Configs"
         run: |
+          TAG="${{ inputs.tag_name || github.ref_name }}"
+          
+          # install.sh ကိုထုတ်ယူပြီး လိုအပ်သည်များ အစားထိုးခြင်း
+          if [ -f "deploy/install/install.sh" ]; then
+            sed "s/__OPENXDR_VERSION__/$TAG/g" deploy/install/install.sh > release-assets/install.sh
+            # yaklang Repo နေရာတွင် professoxrmoriarty သို့ ပြောင်းလဲခြင်း
+            sed -i 's/github.com\/yaklang/github.com\/professoxrmoriarty/g' release-assets/install.sh
+            sed -i 's/ghcr.io\/yaklang/ghcr.io\/professoxrmoriarty/g' release-assets/install.sh
+            chmod +x release-assets/install.sh
+          fi
+          
+          # docker-compose.yml များကို ထည့်သွင်းခြင်း
+          if [ -f "deploy/install/docker-compose.yml" ]; then
+            cp deploy/install/docker-compose.yml release-assets/
+            sed -i 's/ghcr.io\/yaklang/ghcr.io\/professoxrmoriarty/g' release-assets/docker-compose.yml || true
+          fi
+          if [ -f "deploy/nats.conf" ]; then
+            cp deploy/nats.conf release-assets/
+          fi
+
+          # Source Code ကို Zip ထုတ်ခြင်း
           zip -r "release-assets/OpenXDR-source-en.zip" . -x "*.git*" "release-assets/*"
-          ls -lh release-assets/
+          
+          # SHA256SUMS တွက်ချက်ခြင်း (မူရင်းအတိုင်း)
+          cd release-assets
+          sha256sum * > SHA256SUMS
+          cd ..
 
       - name: "7. Publish GitHub Release"
         uses: softprops/action-gh-release@v2
@@ -88,8 +113,13 @@ jobs:
           body: |
             ### OpenXDR English Edition
             * **100% Translated to English** via Yaklang Ecosystem Automation.
-            * Includes **Go Server** binaries (Windows `.exe`, Linux, macOS).
-            * Includes **Rust Agent & Sensor** binaries (Windows `.exe`, Linux).
+            * Supported Platforms: **Windows (.exe), Linux, macOS**.
+            
+            #### 🚀 How to Install
+            One-line install on a Linux server:
+            ```bash
+            curl -fssL [https://github.com/professoxrmoriarty/OpenXDR/releases/download/$](https://github.com/professoxrmoriarty/OpenXDR/releases/download/$){{ inputs.tag_name || github.ref_name }}/install.sh | sudo sh -s -- <your-ip-or-domain>
+            ```
           draft: false
           prerelease: false
           files: release-assets/*
