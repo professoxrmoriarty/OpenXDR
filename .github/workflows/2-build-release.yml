@@ -108,18 +108,41 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.tag_name || github.ref_name }}
-          name: "OpenXDR English Edition (${{ inputs.tag_name || github.ref_name }})"
+          name: "OpenXDR ${{ inputs.tag_name || github.ref_name }}"
           overwrite: true
           body: |
-            ### OpenXDR English Edition
-            * **100% Translated to English** via Yaklang Ecosystem Automation.
-            * Supported Platforms: **Windows (.exe), Linux, macOS**.
+            ### Install
             
-            #### 🚀 How to Install
-            One-line install on a Linux server:
+            One-line install on a Linux server with Docker (x86_64 or arm64, recommended 2 cores & 4GB RAM or above):
+            
             ```bash
-            curl -fssL [https://github.com/professoxrmoriarty/OpenXDR/releases/download/$](https://github.com/professoxrmoriarty/OpenXDR/releases/download/$){{ inputs.tag_name || github.ref_name }}/install.sh | sudo sh -s -- <your-ip-or-domain>
+            curl -fsSL [https://github.com/professoxrmoriarty/OpenXDR/releases/download/$](https://github.com/professoxrmoriarty/OpenXDR/releases/download/$){{ inputs.tag_name || github.ref_name }}/install.sh | sudo sh -s -- <console-domain-or-IP>
             ```
+            
+            The script will generate passwords and keys, issue mTLS certificates, configure HTTPS (automatically applies for Let's Encrypt for public domains, uses built-in CA for private IPs), and print the console URL and admin password upon completion. Once installed, you can add monitored hosts via "Assets -> Add Host". Running the script again on an installed server will upgrade it.
+            
+            **Or ask your AI agent to install (Claude Code, Codex, Cursor, etc., running on the target server):**
+            
+            ```text
+            Install OpenXDR ${{ inputs.tag_name || github.ref_name }} on this server strictly following [https://github.com/professoxrmoriarty/OpenXDR/blob/master/docs/install.md](https://github.com/professoxrmoriarty/OpenXDR/blob/master/docs/install.md) :
+            check the environment, ask me which domain or IP to use for the console, run the installer, then tell me the console URL, the admin password, and how managed hosts should trust the CA.
+            ```
+            
+            ---
+            
+            ### Assets Description
+            
+            | Asset | Description |
+            | :--- | :--- |
+            | `install.sh` / `docker-compose.yml` | One-line installation script and its orchestration file |
+            | `openxdr-agent-linux-amd64` | Endpoint agent, statically linked with eBPF, universal for old and new distros (automatically deployed by the console, usually no need to download manually) |
+            | `openxdr-agent-linux-arm64` | Same as above, for arm64 (ARM cloud hosts, Raspberry Pi, etc.) |
+            | `openxdr-agent-windows-amd64.exe` | Windows endpoint agent |
+            | `openxdr-sensor-linux-amd64/arm64` | Full traffic probe / sensor |
+            | `SHA256SUMS` | Checksums |
+            
+            **Images:** `ghcr.io/professoxrmoriarty/openxdr-server:${{ inputs.tag_name || github.ref_name }}` and `ghcr.io/professoxrmoriarty/openxdr-web:${{ inputs.tag_name || github.ref_name }}` (amd64/arm64). The server image has built-in default rules, scheduled tasks, and agent installation packages.
+            
           draft: false
           prerelease: false
           files: release-assets/*
