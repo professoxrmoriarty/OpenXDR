@@ -108,9 +108,13 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.tag_name || github.ref_name }}
-          name: "OpenXDR ${{ inputs.tag_name || github.ref_name }}"
-          overwrite: true
+          # မည်သည့် Commit တွင် Release ထုတ်မည်ကို အတိအကျ သတ်မှတ်ပေးခြင်း (target_commitish error ကို ဖြေရှင်းပေးသည်)
+          target_commitish: ${{ github.sha }}
+          name: "English Edition (${{ inputs.tag_name || github.ref_name }})"
           body: |
+            ### English Edition — ${{ inputs.tag_name || github.ref_name }}
+            * **100% Translated to English** via Yaklang Ecosystem Automation.
+            * Automated Release Build.
             ### Install
             
             One-line install on a Linux server with Docker (x86_64 or arm64, recommended 2 cores & 4GB RAM or above):
